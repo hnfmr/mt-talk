@@ -1,26 +1,122 @@
 \documentclass{beamer}
-\title{Multithreading (C++11)}
+\usepackage{fancybox}
+\usetheme{Rochester}
+\usecolortheme{crane}
+\title{Multithreading in C++11}
 \subtitle{Threads, Sharing, Synchronisation and Memory model}
 \author{Will Qi}
-\date{22 June, 2012}
+\date{20th June, 2012}
 
 \begin{document}
 \maketitle
 
 \begin{frame}
   \frametitle{Outline}
-    \tableofcontents[part=1,pausesections]
+  \begin{itemize}
+  \item Threads
+    \pause
+  \item Sharing
+    \pause
+  \item Synchronisation
+    \pause
+  \item Memory model
+  \end{itemize}
 \end{frame}
 
+%threads
+\begin{frame}[fragile]
+  \frametitle{Threads}
+  \begin{itemize}
+  \item Lauching and joining threads...
+    \pause
+\begin{verbatim}
+class Worker {
+  void run(const std::vector<Object>& vec) {
+    ...
+  }
+};
+Worker worker;
+std::vector<Object> vec;
+std::thread t(&Worker::run, &worker, std::ref(vec));
+t.join();
+\end{verbatim}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Threads}
+  \begin{itemize}
+  \item Identifying threads...
+    \pause
+\begin{verbatim}
+std::thread::id main_thread_id;
+
+\end{verbatim}
+  \end{itemize}
+\end{frame}
+
+%%%%%%%
 \begin{frame}
   \frametitle{Threads}
   \begin{itemize}[<+->]
- \item<1> $abcadcabc$
-  \item<1-2> \alert<2>{$abcabcabc$}
+  \item<1> $abcadcabc$
+  \item<1-2> \transboxout<2>{$abcabcabc$}
   \item<1-2> $accaccacc$
   \item<1> $bacbccbac$
   \item<1,3> $acdaccac$
   \end{itemize}
 \end{frame}
 
+\begin{frame}
+  \begin{theorem}<1->
+    There exists an infinite set.
+  \end{theorem}
+
+  \begin{proof}<2->
+    This follows from the axiom of infinity.
+  \end{proof}
+\end{frame}
+
+%%%%
+\begin{frame}[fragile]
+  \frametitle{threads...}
+  \begin{center}
+    \begin{tabular}{l|c|c|c}
+      &thread 1 & thread 2 & thread 3\\
+      \hline
+      1&\verb|m.lock()| & &\\
+      \hline
+      2&\verb|work|$\ldots$& & \verb|m.lock()|\\
+      \hline
+      3&\verb|more work|$\ldots$&&\\
+      \hline
+      4&m.unlock() &&\\
+      \hline
+      5&&&m.operation()
+    \end{tabular}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{colums}
+  \begin{columns}[t]
+    \column{.33\textwidth}
+    \begin{block}{\shadowbox{Sample Text}}
+      ``What ever...''
+    \end{block}
+    \column{.33\textwidth}
+    Thread 2
+
+    \column{.33\textwidth}
+    Thread 3
+  \end{columns}
+\end{frame}
+
+
+\begin{frame}
+  \begin{block}{\ovalbox{Introduction to {\LaTeX}}}
+    ``Beamer is a {\LaTeX} class for creating presentations that re held
+    using a projector...''
+  \end{block}
+\end{frame}
 \end{document}
