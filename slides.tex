@@ -26,33 +26,109 @@
 %threads
 \begin{frame}[fragile]
   \frametitle{Threads}
-  \begin{itemize}
-  \item Lauching and joining threads...
-    \pause
+  \begin{block}{Launching}
 \begin{verbatim}
 class Worker {
-  void run(const std::vector<Object>& vec) {
-    ...
-  }
+  void run(std::vector<Object>& vec) { ... }
 };
 Worker worker;
 std::vector<Object> vec;
 std::thread t(&Worker::run, &worker, std::ref(vec));
-t.join();
 \end{verbatim}
-  \end{itemize}
+  \end{block}
+  \pause
+  \begin{block}{Joining/Detaching}
+\begin{verbatim}
+t.join(); t.detach();
+\end{verbatim}
+  \end{block}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Threads}
-  \begin{itemize}
-  \item Identifying threads...
-    \pause
+  \begin{block}{Thread ID declaration}
 \begin{verbatim}
 std::thread::id main_thread_id;
-
 \end{verbatim}
+  \end{block}
+  \pause
+  \begin{block}{Comparison \& IO}
+\begin{verbatim}
+  if (std::this_thread::get_id() == main_thread_id) {
+    ...
+  }
+  std::cout << std::this_thread::get_id() << std::endl;
+\end{verbatim}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Sharing}
+  \begin{itemize}
+  \item Mutal Exclusion
+    \pause
+    \begin{tabular}{l|l}
+      \verb|std::mutex m;|&\\
+      \hline
+      \verb|{|&\\
+      \hline
+      \verb|  std::lock_guard lk(m);|&\verb|m.lock|\\
+      \hline
+      \verb|     ... work ...|&\\
+      \hline
+      \verb|}|&\verb|m.unlock()|:
+    \end{tabular}\\
+  \pause
+  \item More locking utilities...
+    Lock multiple mutexes using \verb|std::lock(Mutex& m1, Mutex& m2, ...)|
   \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Sharing}
+Unique lock
+\pause
+\begin{itemize}
+\item More flexible locking: deferred lock.
+\begin{verbatim}
+std::unique_lock lk(m, std::defer_lock);
+\end{verbatim}
+\pause
+\item Movable locking, transfer lock ownership.
+\begin{verbatim}
+std::unique_lock<std::mutex> get_lock() {
+  std::unique_lock<std::mutex> lk(some_mutex);
+  prepare_data();
+  return lk;
+}
+
+void process_data() {
+  std::unique_lock<std::mutex> lk(get_lock());
+  do_something();
+}
+\end{verbatim}
+\end{itemize}
+\end{frame}
+
+% Synchronisation
+\begin{frame}[fragile]
+\frametitle{Condition Variable}
+Sometimes we want to be notified of a condition, that is associated with an event, at just the right time, e.g. one thread attempts to prepare data:
+\begin{verbatim}
+std::mutex m;
+std::condition_variable cond;
+void prepare_data() {
+  std::lock_guard<std::mutex> lk(m);
+  queue->push(data);
+  cond.notify_all();
+}
+\end{verbatim}
+Other threads attempt to process data:
+\begin{verbatim}
+void process_data() {
+  std::
+}
+\end{verbatim}
 \end{frame}
 
 %%%%%%%
