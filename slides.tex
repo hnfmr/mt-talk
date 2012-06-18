@@ -45,7 +45,7 @@ t.join(); t.detach();
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Threads}
+  \frametitle{Threads - thread::id}
   \begin{block}{Thread ID declaration}
 \begin{verbatim}
 std::thread::id main_thread_id;
@@ -63,9 +63,9 @@ std::thread::id main_thread_id;
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Sharing}
+  \frametitle{Sharing - Mutex and Lock Guard}
   \begin{itemize}
-  \item Mutal Exclusion
+  \item Mutual Exclusion
     \pause
     \begin{tabular}{l|l}
       \verb|std::mutex m;|&\\
@@ -78,59 +78,130 @@ std::thread::id main_thread_id;
       \hline
       \verb|}|&\verb|m.unlock()|:
     \end{tabular}\\
-  \pause
+    \pause
   \item More locking utilities...
     Lock multiple mutexes using \verb|std::lock(Mutex& m1, Mutex& m2, ...)|
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Sharing}
-Unique lock
-\pause
-\begin{itemize}
-\item More flexible locking: deferred lock.
+  \frametitle{Sharing - Unique Lock}
+  \pause
+  \begin{itemize}
+  \item More flexible lockings: \verb|std::deferred_lock|, \verb|std::adopt_lock|.
+{\scriptsize
 \begin{verbatim}
-std::unique_lock lk(m, std::defer_lock);
+  std::unique_lock lk(m, std::defer_lock);
+  std::unique_lock lk(m, std::adopt_lock);
 \end{verbatim}
-\pause
-\item Movable locking, transfer lock ownership.
-\begin{verbatim}
-std::unique_lock<std::mutex> get_lock() {
-  std::unique_lock<std::mutex> lk(some_mutex);
-  prepare_data();
-  return lk;
 }
+\pause
+\item Movable lock, transfer lock ownership.
+{\scriptsize
+\begin{verbatim}
+  std::unique_lock<std::mutex> get_lock() {
+    std::unique_lock<std::mutex> lk(some_mutex);
+    prepare_data();
+    return lk;
+  }
 
-void process_data() {
-  std::unique_lock<std::mutex> lk(get_lock());
-  do_something();
-}
+  void process_data() {
+    std::unique_lock<std::mutex> lk(get_lock());
+    do_something();
+  }
 \end{verbatim}
-\end{itemize}
+}
+  \end{itemize}
 \end{frame}
 
 % Synchronisation
 \begin{frame}[fragile]
-\frametitle{Condition Variable}
-Sometimes we want to be notified of a condition, that is associated with an event, at just the right time, e.g. one thread attempts to prepare data:
+  \frametitle{Synchronisation - Condition Variable}
+\begin{itemize}
+\item
+  Sometimes we want to be notified of a condition, that is associated with an event, at just the right time, e.g. one thread attempts to prepare data:
+  \pause
+      {\scriptsize
 \begin{verbatim}
-std::mutex m;
-std::condition_variable cond;
-void prepare_data() {
-  std::lock_guard<std::mutex> lk(m);
-  queue->push(data);
-  cond.notify_all();
-}
+  std::mutex m;
+  std::condition_variable cond;
+  void prepare_data() {
+    std::lock_guard<std::mutex> lk(m);
+    queue->push(data);
+    cond.notify_all();
+  }
 \end{verbatim}
-Other threads attempt to process data:
-\begin{verbatim}
-void process_data() {
-  std::
 }
-\end{verbatim}
+\pause
+\item Other threads attempt to process data:
+{\scriptsize
+\begin{semiverbatim}
+  void process_data() \{
+    std::{\color{red}unique_lock}<std::mutex> lk(m);
+    cond.wait(lk, []()->bool \{ return !queue->empty(); \});
+  \}
+\end{semiverbatim}
+}
+\end{itemize}
 \end{frame}
 
+\begin{frame}[fragile]
+\frametitle{Synchronisation - Future}
+Futures are used to communicate between threads.
+\begin{itemize}
+\item Lauching and waiting for a ``future''...
+{\scriptsize
+\begin{verbatim}
+int some_long_running_task();
+
+std::future<int> fut =
+  std::async(std::launch::async | std::launch::deferred,
+             some_long_running_task);
+do_some_other_work();
+
+auto result = fut.get();
+\end{verbatim}
+}
+\item Other ways to launch a future:
+{\scriptsize
+\begin{verbatim}
+auto f1 = std::async(&X::foo, &x, std::ref(arg));
+auto f2 = std::async(&X::bar, x, "hello");
+\end{verbatim}
+}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Synchronisation - Packaged Task}
+A packaged task associates a future to a function or callable object.
+\begin{itemize}
+\item Launch a packaged task.
+{\scriptsize
+\begin{verbatim}
+int func() {
+  return 5;
+}
+std::packaged_task<int()> task(func);
+task();
+\end{verbatim}
+}
+\item Or more elegantly:
+{\scriptsize
+\begin{verbatim}
+auto task(std
+\end{verbatim}
+}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Synchronisation - Promise}
+Promise
+\begin{itemize}
+\item a
+\end{itemize}
+\end{frame}
 %%%%%%%
 \begin{frame}
   \frametitle{Threads}
